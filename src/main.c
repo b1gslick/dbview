@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
   bool newfile = false;
   int c;
   int dbfd = -1;
+  struct dbheader_t *dbhdr = NULL;
 
   while ((c = getopt(argc, argv, "nf:")) != -1) {
     switch (c) {
@@ -46,17 +47,27 @@ int main(int argc, char *argv[]) {
     if (dbfd == -1) {
       printf("Unable to create databasae file\n");
       return -1;
-    } else {
-      dbfd = open_db_file(filepath);
-      if (dbfd == -1) {
-        printf("Unable to open database file\n");
-        return -1;
-      }
+    }
+
+    if (create_db_header(dbfd, &dbhdr) == -1) {
+      printf("Failed to create database header\n");
+      return -1;
+    }
+  } else {
+    dbfd = open_db_file(filepath);
+    if (dbfd == -1) {
+      printf("Unable to open database file\n");
+      return -1;
+    }
+    if (validate_db_header(dbfd, &dbhdr) == -1) {
+      printf("Failed to validate db header\n");
+      return -1;
     }
   }
 
   printf("Newfile: %d\n", newfile);
   printf("Filepath: %s\n", filepath);
+  output_file(dbfd, &dbhdr);
 
   return 0;
 }
